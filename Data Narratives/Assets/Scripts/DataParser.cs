@@ -7,7 +7,7 @@ public class DataParser : MonoBehaviour
     public static DataParser Instance; //singleton
     public TextAsset dataset; //take the dataset and parse it to choose five specific countries
     public Dictionary<string,float> countries = new Dictionary<string,float>();
-    List<string> target_countries = new List<string>{"Hungary","Mexico","Jordan","India","Somaila"}; //filter out five countries
+    List<string> target_countries = new List<string>{"Hungary","Peru","Jordan","India","Somalia"}; //filter out five countries
 
 
     void Awake()
@@ -37,8 +37,8 @@ public class DataParser : MonoBehaviour
         if (string_ghi.Contains("<5")) {return 4.9f;} //change to float for comparison
         if (string_ghi == "-" || string_ghi == "*") {return 0.0f;} //missing data
 
-        // float result;
-        // if (float.TryParse(string_ghi.Replace(',','.'), out result)) {return result;} //this in case the project is opened on different countries where systems ta
+        float result;
+        if (float.TryParse(string_ghi.Replace(',','.'), out result)) {return result;} //this in case the project is opened on different countries where systems ta
 
         return 0f;
     }

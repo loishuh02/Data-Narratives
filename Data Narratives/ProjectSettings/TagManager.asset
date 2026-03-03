@@ -3,16 +3,22 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Somalia
+  - FridgeSensor
+  - India
+  - Hungary
+  - Peru
+  - Jordan
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Fridge
+  - 
   - Water
   - UI
-  - Magnet
-  - Food
+  - 
+  - 
   - 
   - 
   - 
@@ -40,4 +46,19 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Fridge
+    uniqueID: 3191537903
+    locked: 0
+  - name: Food
+    uniqueID: 303050569
+    locked: 0
+  - name: FridgeDoorInside
+    uniqueID: 3349293107
+    locked: 0
+  - name: FridgeDoorOutside
+    uniqueID: 4054328207
+    locked: 0
+  - name: Magnets
+    uniqueID: 3178717451
     locked: 0

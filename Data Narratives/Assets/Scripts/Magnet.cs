@@ -21,6 +21,7 @@ public class Magnet : MonoBehaviour
     }
 
     void OnMouseEnter() { //when cursor hovers over magnets
+        if (FridgeManager.Instance == null) return;
         if (!isDragging && !FridgeManager.Instance.isDoorOpen) {SetCursor(openHand);}
     }
 
@@ -35,24 +36,26 @@ public class Magnet : MonoBehaviour
     }
 
     void OnMouseDrag() {
-        if (FridgeManager.Instance.isDoorOpen) {return;}
-        Vector3 mouse_position = Camera.main.ScreenToWorldPoint(Input.mousePosition); //from pixel coodinates to unity screen ones
-        mouse_position.z = 0;
-        transform.position = mouse_position + offset;
+        if (FridgeManager.Instance.isDoorOpen) return;
+
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        transform.position = new Vector3(mousePos.x + offset.x, mousePos.y + offset.y, -1f);
     }
 
-    void OnMouseUp() { //when magnet dragged to trigger position
+    void OnTriggerEnter2D(Collider2D other) { //when magnet dragged to trigger position
+        if (other.CompareTag("FridgeSensor") && isDragging) {
+            FridgeManager.Instance.OpenFridge(countryID);
+            gameObject.SetActive(false);
+            SetCursor(defaultHand);
+            isDragging = false;
+        }
+    }
+
+    void OnMouseUp() { 
         if (!isDragging) {return;} //if it wasn't dragged do nothing
         isDragging = false;
         SetCursor(defaultHand);
-
-        //OverlapPoint instead oncollision2d without using rigidbody (no gravity)
-        Collider2D hit = Physics2D.OverlapPoint(transform.position);
-        if (hit != null && hit.CompareTag("FridgeSensor")) {
-            transform.position = hit.transform.position;
-            FridgeManager.Instance.OpenFridge(countryID);
-            gameObject.SetActive(false);
-        } else {transform.position = initialPosition;}
+        ResetPosition();
     }
 
     public void ResetPosition() { //when door closes
