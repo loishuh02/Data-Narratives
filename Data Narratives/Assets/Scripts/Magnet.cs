@@ -1,64 +1,82 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Magnet : MonoBehaviour
 {
-    //cursor states
+    [Header("Cursors")]
     public Texture2D defaultHand;
     public Texture2D openHand;
     public Texture2D grabbedHand;
     public Vector2 hotSpot = Vector2.zero;
 
-    public string countryID; //for countries dictionary
-    private Vector3 offset = new Vector3 (0.4f, 0.4f, 0); //offset when magnet is grabbed
-    private Vector3 initialPosition; //initial position for each magnet
+    [Header("Snap")]
+    // Assign a child or separate empty GameObject in the Inspector as the snap target.
+    // If left null, the magnet snaps to the sensor's position instead.
+    public Transform snapPoint;
+
+    public string countryID;
+
+    private Vector3 offset = new Vector3(0.4f, 0.4f, 0);
+    private Vector3 initialPosition;
     private bool isDragging = false;
-    
+    private bool isPlaced = false; // locked after snapping
+
     void Start() {
-        initialPosition = transform.position; //set magnet's initialPosition to current position
+        initialPosition = transform.position;
         SetCursor(defaultHand);
     }
 
-    void OnMouseEnter() { //when cursor hovers over magnets
+    void OnMouseEnter() {
         if (FridgeManager.Instance == null) return;
-        if (!isDragging && !FridgeManager.Instance.isDoorOpen) {SetCursor(openHand);}
+        if (isPlaced) return; // no cursor change once placed
+        if (!isDragging && !FridgeManager.Instance.isDoorOpen) { SetCursor(openHand); }
     }
 
-    void OnMouseExit() { //when cursor moves away from magnets
-        if (!isDragging) {SetCursor(defaultHand);}
+    void OnMouseExit() {
+        if (isPlaced) return;
+        if (!isDragging) { SetCursor(defaultHand); }
     }
 
-    void OnMouseDown() { //when clicking magnets
-        if (FridgeManager.Instance.isDoorOpen) {return;} //if door is open do nothing
+    void OnMouseDown() {
+        if (isPlaced) return;                           // ignore clicks once placed
+        if (FridgeManager.Instance.isDoorOpen) return;
         isDragging = true;
         SetCursor(grabbedHand);
     }
 
     void OnMouseDrag() {
+        if (isPlaced) return;
         if (FridgeManager.Instance.isDoorOpen) return;
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         transform.position = new Vector3(mousePos.x + offset.x, mousePos.y + offset.y, -1f);
     }
 
-    void OnTriggerEnter2D(Collider2D other) { //when magnet dragged to trigger position
+    void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("FridgeSensor") && isDragging) {
-            FridgeManager.Instance.OpenFridge(countryID);
-            gameObject.SetActive(false);
-            SetCursor(defaultHand);
             isDragging = false;
+            isPlaced = true;
+            SetCursor(defaultHand);
+
+            // Snap to the defined snapPoint, or fall back to the sensor's position
+            Vector3 target = snapPoint != null
+                ? new Vector3(snapPoint.position.x, snapPoint.position.y, -1f)
+                : new Vector3(other.transform.position.x, other.transform.position.y, -1f);
+
+            transform.position = target;
+
+            FridgeManager.Instance.PrepareAndOpenFridge(countryID);
         }
     }
 
-    void OnMouseUp() { 
-        if (!isDragging) {return;} //if it wasn't dragged do nothing
+    void OnMouseUp() {
+        if (!isDragging) return;
         isDragging = false;
         SetCursor(defaultHand);
         ResetPosition();
     }
 
-    public void ResetPosition() { //when door closes
+    public void ResetPosition() {
+        isPlaced = false; // allow dragging again after fridge closes
         gameObject.SetActive(true);
         transform.position = initialPosition;
         SetCursor(defaultHand);
